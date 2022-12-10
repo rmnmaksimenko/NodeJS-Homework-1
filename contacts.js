@@ -6,32 +6,31 @@ const contactsPath = path.resolve('./db/contacts.json');
 
 async function listContacts() {
   const data = await fs.readFile(contactsPath, { encoding: 'utf-8' });
-  return console.table(JSON.parse(data));
+  return JSON.parse(data);
 }
 
 async function getContactById(contactId) {
-  const data = await fs.readFile(contactsPath, { encoding: 'utf-8' });
-  const parsedData = JSON.parse(data);
-  const getContact = parsedData.filter(contact => contact.id.includes(contactId));
-  return console.log(getContact);
+  const data = await listContacts();
+  return data.filter(contact => contact.id.includes(contactId));
 }
 
 async function removeContact(contactId) {
-  const data = await fs.readFile(contactsPath, { encoding: 'utf-8' });
-  const parsedData = JSON.parse(data);
-  const getContact = parsedData.filter(contact => contact.id !== contactId);
-  console.table(getContact);
-  fs.writeFile(contactsPath, JSON.stringify(getContact), 'utf-8');
+  const data = await listContacts();
+  const contactIndex = data.findIndex(item => item.id == contactId);
+  if (contactIndex === -1) {
+    return null;
+  }
+  const [removedContact] = data.splice(contactIndex, 1);
+  fs.writeFile(contactsPath, JSON.stringify(data, null, 2), 'utf-8');
+  return removedContact;
 }
 
 async function addContact(name, email, phone) {
-  const data = await fs.readFile(contactsPath, { encoding: 'utf-8' });
-  const id = uuidv4();
-  const contact = { id, name, email, phone };
-  const parsedData = JSON.parse(data);
-  parsedData.push(contact);
-  console.table(parsedData);
-  fs.writeFile(contactsPath, JSON.stringify(parsedData), 'utf-8');
+  const data = await listContacts();
+  const contact = { id: uuidv4(), name, email, phone };
+  data.push(contact);
+  fs.writeFile(contactsPath, JSON.stringify(data, null, 2), 'utf-8');
+  return data;
 }
 
 module.exports = {
